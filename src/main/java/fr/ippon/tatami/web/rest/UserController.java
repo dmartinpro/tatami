@@ -16,6 +16,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * REST controller for managing users.
@@ -69,6 +74,7 @@ public class UserController {
             produces = "application/json")
     @ResponseBody
     public Collection<User> suggestions() {
+        User currentUser = authenticationService.getCurrentUser();
         String currentLogin = currentUser.getLogin();
         String currentUsername = DomainUtil.getUsernameFromLogin(currentLogin);
         if (this.log.isDebugEnabled()) {
@@ -78,6 +84,7 @@ public class UserController {
         Collection<String> exceptions = friendshipService.getFriendIdsForUser(currentLogin);
         exceptions.add(currentLogin);
 
+        Collection<UserStatusStat> stats = statsService.getDayline();
         Map<String, User> users = new HashMap<String, User>();
         for (UserStatusStat stat : stats) {
             User potentialFriend = userService.getUserByUsername(stat.getUsername());
@@ -106,9 +113,13 @@ public class UserController {
             produces = "application/json")
     @ResponseBody
     public Collection<User> searchUsers(@RequestParam("q") String query) {
+        String prefix = query.toLowerCase();
         if (this.log.isDebugEnabled()) {
             this.log.debug("REST request to find users starting with : " + prefix);
         }
+        User currentUser = authenticationService.getCurrentUser();
         String domain = DomainUtil.getDomainFromLogin(currentUser.getLogin());
+        Collection<String> logins = searchService.searchUserByPrefix(domain, prefix);
+        return userService.getUsersByLogin(logins);
     }
 }

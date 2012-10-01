@@ -819,18 +819,13 @@ app.View.SearchSearchView = Backbone.View.extend({
     var self = this;
 
     _.each($(this.el).serializeArray(), function(input){
-      if(input.name === 'search') {
-    	var escaped_value = this.escapeField(input.value + '');
-        self.model.options.search = escaped_value;
-      }
+      if(input.name === 'search')
+        self.model.options.search = input.value;
     });
 
     this.search();
   },
 
-  escapeField: function (value) {
-	  return value.replace(new RegExp('["\'<>]', 'gi'), '');
-  },
   search: function () {
     app.router.navigate('//search/' + this.model.options.search, {trigger: false,replace:false});
     this.fetch();
@@ -853,7 +848,7 @@ app.View.SearchSearchView = Backbone.View.extend({
   },
 
   render: function () {
-    var search = this.escapeField((typeof this.model.options.search === 'undefined')? '':this.model.options.search);
+    var search = (typeof this.model.options.search === 'undefined')? '':this.model.options.search;
     $(this.el).html(this.template({search: search}));
     return $(this.el);
   }

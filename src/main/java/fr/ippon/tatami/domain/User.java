@@ -1,21 +1,17 @@
 package fr.ippon.tatami.domain;
 
+import fr.ippon.tatami.domain.validation.ContraintsUserCreation;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.hibernate.validator.constraints.Email;
+import org.hibernate.validator.constraints.NotEmpty;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import javax.validation.groups.Default;
-
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.hibernate.validator.constraints.Email;
-import org.hibernate.validator.constraints.NotEmpty;
-import org.hibernate.validator.constraints.SafeHtml;
-import org.hibernate.validator.constraints.SafeHtml.WhiteListType;
-
-import fr.ippon.tatami.domain.validation.ContraintsUserCreation;
 
 /**
  * A user.
@@ -38,7 +34,6 @@ public class User {
     private String password;
 
     @Column(name = "username")
-    @SafeHtml(whitelistType=WhiteListType.NONE)
     private String username;
 
     @Column(name = "domain")
@@ -51,24 +46,20 @@ public class User {
     @NotNull
     @Size(min = 0, max = 50)
     @Column(name = "firstName")
-    @SafeHtml(whitelistType=WhiteListType.NONE)
     private String firstName;
 
     @NotNull
     @Size(min = 0, max = 50)
     @Column(name = "lastName")
-    @SafeHtml(whitelistType=WhiteListType.NONE)
     private String lastName;
 
     @NotNull
     @Size(min = 0, max = 100)
     @Column(name = "jobTitle")
-    @SafeHtml(whitelistType=WhiteListType.NONE)
     private String jobTitle;
 
     @Size(min = 0, max = 20)
     @Column(name = "phoneNumber")
-    @Pattern(regexp="[\\(\\)\\s\\.0-9+-]*")
     private String phoneNumber;
 
     @Column(name = "openIdUrl")
@@ -86,7 +77,7 @@ public class User {
     private long followersCount;
 
     public String getLogin() {
-        return this.login;
+        return login;
     }
 
     public void setLogin(String login) {
@@ -94,7 +85,7 @@ public class User {
     }
 
     public String getPassword() {
-        return this.password;
+        return password;
     }
 
     public void setPassword(String password) {
@@ -102,7 +93,7 @@ public class User {
     }
 
     public String getUsername() {
-        return this.username;
+        return username;
     }
 
     public void setUsername(String username) {
@@ -110,7 +101,7 @@ public class User {
     }
 
     public String getDomain() {
-        return this.domain;
+        return domain;
     }
 
     public void setDomain(String domain) {
@@ -118,7 +109,7 @@ public class User {
     }
 
     public String getGravatar() {
-        return this.gravatar;
+        return gravatar;
     }
 
     public void setGravatar(String gravatar) {
@@ -126,7 +117,7 @@ public class User {
     }
 
     public String getFirstName() {
-        return this.firstName;
+        return firstName;
     }
 
     public void setFirstName(String firstName) {
@@ -134,7 +125,7 @@ public class User {
     }
 
     public String getLastName() {
-        return this.lastName;
+        return lastName;
     }
 
     public void setLastName(String lastName) {
@@ -142,7 +133,7 @@ public class User {
     }
 
     public String getJobTitle() {
-        return this.jobTitle;
+        return jobTitle;
     }
 
     public void setJobTitle(String jobTitle) {
@@ -150,7 +141,7 @@ public class User {
     }
 
     public String getPhoneNumber() {
-        return this.phoneNumber;
+        return phoneNumber;
     }
 
     public void setPhoneNumber(String phoneNumber) {
@@ -158,7 +149,7 @@ public class User {
     }
 
     public String getOpenIdUrl() {
-        return this.openIdUrl;
+        return openIdUrl;
     }
 
     public void setOpenIdUrl(String openIdUrl) {
@@ -166,7 +157,7 @@ public class User {
     }
 
     public String getTheme() {
-        return this.theme;
+        return theme;
     }
 
     public void setTheme(String theme) {
@@ -174,7 +165,7 @@ public class User {
     }
 
     public long getStatusCount() {
-        return this.statusCount;
+        return statusCount;
     }
 
     public void setStatusCount(long statusCount) {
@@ -182,7 +173,7 @@ public class User {
     }
 
     public long getFriendsCount() {
-        return this.friendsCount;
+        return friendsCount;
     }
 
     public void setFriendsCount(long friendsCount) {
@@ -190,7 +181,7 @@ public class User {
     }
 
     public long getFollowersCount() {
-        return this.followersCount;
+        return followersCount;
     }
 
     public void setFollowersCount(long followersCount) {
@@ -204,33 +195,33 @@ public class User {
 
         User user = (User) o;
 
-        if (!this.login.equals(user.login)) return false;
+        if (!login.equals(user.login)) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        return this.login.hashCode();
+        return login.hashCode();
     }
 
     @Override
     public String toString() {
         return "User{" +
-                "login='" + this.login + '\'' +
-                ", password='" + this.password + '\'' +
-                ", username='" + this.username + '\'' +
-                ", domain='" + this.domain + '\'' +
-                ", gravatar='" + this.gravatar + '\'' +
-                ", firstName='" + this.firstName + '\'' +
-                ", lastName='" + this.lastName + '\'' +
-                ", jobTitle='" + this.jobTitle + '\'' +
-                ", phoneNumber='" + this.phoneNumber + '\'' +
-                ", openIdUrl='" + this.openIdUrl + '\'' +
-                ", theme='" + this.theme + '\'' +
-                ", statusCount=" + this.statusCount +
-                ", friendsCount=" + this.friendsCount +
-                ", followersCount=" + this.followersCount +
+                "login='" + login + '\'' +
+                ", password='" + password + '\'' +
+                ", username='" + username + '\'' +
+                ", domain='" + domain + '\'' +
+                ", gravatar='" + gravatar + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", jobTitle='" + jobTitle + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", openIdUrl='" + openIdUrl + '\'' +
+                ", theme='" + theme + '\'' +
+                ", statusCount=" + statusCount +
+                ", friendsCount=" + friendsCount +
+                ", followersCount=" + followersCount +
                 '}';
     }
 }

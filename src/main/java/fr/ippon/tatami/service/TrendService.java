@@ -9,6 +9,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Inject;
+import java.util.*;
 
 /**
  * Analyzes trends (tags going up or down depending on the current time).

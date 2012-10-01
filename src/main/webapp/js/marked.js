@@ -510,9 +510,7 @@ function outputLink(cap, link) {
       + inline.lexer(cap[1])
       + '</a>';
   } else {
-    var img_src = '';
-    if (isImgSrcValid(link.href)) {
-      img_src = '<img src="'
+    return '<img src="'
       + escape(link.href)
       + '" alt="'
       + escape(cap[1])
@@ -523,11 +521,8 @@ function outputLink(cap, link) {
       + '"'
       : '')
       + '>';
-    }
-    return img_src;
   }
 }
-
 
 
 /**
@@ -810,21 +805,4 @@ if (typeof module !== 'undefined') {
 
 }).call(function() {
   return this || (typeof window !== 'undefined' ? window : global);
-}());
-}());
-
-function isImgSrcValid(link) {
-  if (link == null) {
-    return false;
-  }
-  // only consider the URL without any query parameters
-  var _link = (link.indexOf('?') > -1) ? link.substring(0, link.indexOf('?')): link;
-  // does it contain an accepted IMG file extension (jpg, jpeg, gif, png)
-  // can only be followed by '#' or '?' character (or nothing of course)
-  // just to avoir some "myimage.png.php" fake images...
-  var allowed_extensions = /.*(\.gif|\.jpg|\.jpeg|\.png)($|[?#].*)/gi;
-  var extension_found = allowed_extensions.test(_link.toLowerCase());
-  return extension_found;
-
-}
 }());
