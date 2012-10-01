@@ -1,4 +1,3 @@
-
 .homeMenu{margin-left:0;margin-bottom:0.3em;list-style:none;}
 
 /*
@@ -29,11 +28,11 @@
   Profile Stats table tablet
 */
 
-#profileContent .well, #profileFollow .well {
+#profileContent .well, #profileFollow .well, #profileTrends .well, #userTrends .well {
   padding: 5px;
 }
 
-#profileContent table, #profileFollow table {
+#profileContent table, #profileFollow table, #profileTrends table, #userTrends table {
   margin: 0px;
 }
 
@@ -77,19 +76,50 @@ form {
     margin-left: 5px;
 }
 
-.alert-discuss {
-  color: #3a5fad;
-  background-color: #d9e0f7;
-  border-color: #bcccf1;
+.alert-status {
+    color: #000000;
+    background-color: #fcfcfc;
+    border-color: #E6E6E6;
 }
 
-.alert-discuss * {
-  color: #3a5fad;
+.alert-discuss {
+  color: #000000;
+  background-color: #E6E6E6;
+  border-color: #E6E6E6;
+}
+
+.alert-shares {
+  margin-top: 5px;
+  margin-bottom: 10px;
+  color: #000000;
+  border-color: #E6E6E6;
+}
+
+.share-title {
+  text-align: center;
+}
+
+.share-number {
+  text-align: center;
+  font-weight: bold;
+}
+
+.shares-list div {
+  float:left;
+}
+
+.details-available {
+    box-shadow: 2px 2px 2px #888;
+}
+
+.statuses-details {
+    padding-left: 50px;
 }
 
 .statuses table, .shares table {
     width: 100%;
 }
+
 .userStatus {
     color: #000000;
     text-decoration: none;
@@ -135,6 +165,11 @@ form {
 
 .status-actions a:hover {
   cursor: pointer;
+}
+
+.status-content p {
+  word-break: break-word;
+  word-wrap: break-word;
 }
 
 .status-content a {
@@ -189,6 +224,13 @@ form {
 
 /* Landscape phones and down */
 @media (max-width: 480px) {
+  .hero-unit {
+    padding: 10px;
+  }
+
+  .hero-unit h1 {
+    font-size: 42px;
+  }
 }
  
 /* Landscape phone to portrait tablet */
@@ -231,4 +273,8 @@ form {
  
 /* Large desktop */
 @media (min-width: 1200px) {
+}
+
+table {
+  table-layout: fixed;
 }

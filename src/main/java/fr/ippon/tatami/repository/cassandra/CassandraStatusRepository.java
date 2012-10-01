@@ -1,9 +1,13 @@
 package fr.ippon.tatami.repository.cassandra;
 
+import fr.ippon.tatami.domain.Group;
 import fr.ippon.tatami.domain.Status;
+import fr.ippon.tatami.repository.DiscussionRepository;
+import fr.ippon.tatami.repository.SharesRepository;
 import fr.ippon.tatami.repository.StatusRepository;
 import me.prettyprint.cassandra.utils.TimeUUIDUtils;
 import me.prettyprint.hom.EntityManagerImpl;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cache.annotation.CacheEvict;
@@ -34,6 +38,12 @@ public class CassandraStatusRepository implements StatusRepository {
     @Inject
     private EntityManagerImpl em;
 
+    @Inject
+    private DiscussionRepository discussionRepository;
+
+    @Inject
+    private SharesRepository sharesRepository;
+
     private static ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     private static Validator validator = factory.getValidator();
 
@@ -41,6 +51,7 @@ public class CassandraStatusRepository implements StatusRepository {
     public Status createStatus(String login,
                                String username,
                                String domain,
+                               Group group,
                                String content,
                                String replyTo,
                                String replyToUsername)
@@ -51,6 +62,9 @@ public class CassandraStatusRepository implements StatusRepository {
         status.setLogin(login);
         status.setUsername(username);
         status.setDomain(domain);
+        if (group != null) {
+            status.setGroupId(group.getGroupId());
+        }
         status.setContent(content);
         status.setStatusDate(Calendar.getInstance().getTime());
         status.setReplyTo(replyTo);
@@ -77,11 +91,11 @@ public class CassandraStatusRepository implements StatusRepository {
             log.trace("Finding status : " + statusId);
         }
         Status status = em.find(Status.class, statusId);
-        if (status != null) {
-            return Boolean.TRUE.equals(status.getRemoved()) ? null : status;
-        } else {
+        if (status == null || status.getRemoved() == Boolean.TRUE) {
             return null;
         }
+        status.setDetailsAvailable(computeDetailsAvailable(status));
+        return status;
     }
 
     @Override
@@ -92,5 +106,19 @@ public class CassandraStatusRepository implements StatusRepository {
             log.debug("Updating Status : " + status);
         }
         em.persist(status);
+    }
+
+    private boolean computeDetailsAvailable(Status status) {
+        boolean detailsAvailable = false;
+        if(StringUtils.isNotBlank(status.getReplyTo())) {
+            detailsAvailable = true;
+        } else if(discussionRepository.hasReply(status.getStatusId())) {
+            detailsAvailable = true;
+        } else if(StringUtils.isNotBlank(status.getSharedByUsername())) {
+            detailsAvailable = true;
+        } else if(sharesRepository.hasBeenShared(status.getStatusId())) {
+            detailsAvailable = true;
+        }
+        return detailsAvailable;
     }
 }

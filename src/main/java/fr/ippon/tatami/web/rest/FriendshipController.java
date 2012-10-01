@@ -1,7 +1,7 @@
 package fr.ippon.tatami.web.rest;
 
 import fr.ippon.tatami.domain.User;
-import fr.ippon.tatami.service.UserService;
+import fr.ippon.tatami.service.FriendshipService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Controller;
@@ -21,7 +21,7 @@ public class FriendshipController {
     private final Log log = LogFactory.getLog(FriendshipController.class);
 
     @Inject
-    private UserService userService;
+    private FriendshipService friendshipService;
 
     /**
      * POST /friendships/create -> follow user
@@ -34,7 +34,7 @@ public class FriendshipController {
         if (log.isDebugEnabled()) {
             log.debug("REST request to follow username : " + user.getUsername());
         }
-        userService.followUser(user.getUsername());
+        friendshipService.followUser(user.getUsername());
     }
 
     /**
@@ -48,7 +48,7 @@ public class FriendshipController {
         if (log.isDebugEnabled()) {
             log.debug("REST request to unfollow username  : " + user.getUsername());
         }
-        userService.unfollowUser(user.getUsername());
+        friendshipService.unfollowUser(user.getUsername());
     }
 
     /**
@@ -59,7 +59,7 @@ public class FriendshipController {
             produces = "application/json")
     @ResponseBody
     public Collection<User> getFriends(@RequestParam("screen_name") String username) {
-        return userService.getFriendsForUser(username);
+        return friendshipService.getFriendsForUser(username);
     }
 
     /**
@@ -70,6 +70,6 @@ public class FriendshipController {
             produces = "application/json")
     @ResponseBody
     public Collection<User> getFollowers(@RequestParam("screen_name") String username) {
-        return userService.getFollowersForUser(username);
+        return friendshipService.getFollowersForUser(username);
     }
 }

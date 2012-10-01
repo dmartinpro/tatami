@@ -270,58 +270,6 @@ app.Collection.TrendsCollection = Backbone.Collection.extend({
     }
 });
 
-app.View.TrendsView = Backbone.View.extend({
-    template: _.template($('#trends-template').html()),
-    tagName: 'tbody',
-
-    initialize: function() {
-        var self = this;
-
-        this.model = new app.Collection.TrendsCollection();
-
-        this.model.bind('reset', this.render, this);
-        this.model.bind('add', function(model, collection, options) {
-            self.addItem(model, options.index);
-        }, this);
-
-        this.model.fetch();
-    },
-
-    render: function() {
-        $(this.el).empty();
-        if(this.model.length > 0)
-            _.each(this.model.models, this.addItem, this);
-        else
-            $(this.el).html(this.template());
-        return $(this.el);
-    },
-
-    addItem: function(item, index) {
-        var el = new app.View.TrendsItemView({
-            model: item
-        }).render();
-        if(index === 0)
-            $(this.el).prepend(el);
-        else
-            $(this.el).append(el);
-    }
-});
-
-app.View.TrendsItemView = Backbone.View.extend({
-    tagName: 'tr',
-    template: _.template($('#trends-template-item').html()),
-
-
-    initialize: function() {
-    },
-
-    render: function() {
-        var $el = $(this.el);
-        $el.html(this.template({trend:this.model.toJSON()}));
-        return $(this.el);
-    }
-});
-
 /*
   Timeline
 */
@@ -523,6 +471,80 @@ app.View.TimeLinePanelView = Backbone.View.extend({
 });
 
 /*
+  Mentions
+ */
+app.View.MentionView = Backbone.View.extend({
+    template: _.template($('#mention-refresh').html()),
+    progressTemplate: _.template($('#timeline-progress').html()),
+
+    initialize:function () {
+        this.views = {};
+
+        this.views.list = new app.View.TimeLineView({
+            model:this.model
+        });
+
+        this.views.next = new app.View.TimeLineNextView({
+            model:this.model
+        });
+
+        this.views.next.nextStatus();
+    },
+
+    events: {
+       'click #mentionRefresh': 'refreshMention'
+    },
+
+    refreshMention: function(done, context){
+        this.progress();
+        var self = this;
+        this.model.fetch({
+            success: function(){
+                self.render();
+            },
+            error: function() {
+                self.render();
+            }
+        });
+    },
+
+    render: function() {
+        $(this.el).html(this.template());
+        $(this.el).append(this.views.list.render());
+        $(this.el).append(this.views.next.render());
+        this.delegateEvents();
+        return $(this.el);
+    },
+
+    progress: function() {
+        $(this.el).html(this.progressTemplate());
+        this.undelegateEvents();
+        return $(this.el);
+    }
+
+});
+
+app.View.MentionPanelView = Backbone.View.extend({
+
+    initialize: function(){
+        this.views = {};
+        this.views.mentionView = new app.View.MentionView({
+            model : this.model
+        });
+
+        this.views.mentionView.refreshMention();
+
+        this.on('refresh', this.views.mentionView.refreshMention, this.views.mentionView);
+    },
+
+    render: function() {
+        $(this.el).append(this.views.mentionView.render());
+        return $(this.el);
+    }
+
+});
+
+/*
   Favorite
 */
 
@@ -594,6 +616,97 @@ app.View.FavoritePanelView = Backbone.View.extend({
 });
 
 /*
+Groups
+ */
+
+app.View.GroupsListView = Backbone.View.extend({
+    template: _.template($('#group-list').html()),
+
+    tagName: 'div',
+
+    initialize: function(){
+        this.groupsCollection = new app.Collection.GroupsCollection();
+        this.groupsCollection.fetch();
+        this.groupsCollection.bind("reset", this.render, this);
+
+        var self = this;
+    },
+
+    render: function() {
+        $(this.el).html(this.template({
+            groupsCollection: this.groupsCollection}));
+        return $(this.el);
+    }
+
+});
+
+app.View.GroupsDisplayView = Backbone.View.extend({
+    template: _.template($('#group-display').html()),
+
+    tagName: 'div',
+
+    initialize: function(){
+        this.groupsCollection = new app.Collection.GroupsCollection();
+        this.groupsCollection.fetch();
+        this.groupsCollection.bind("reset", this.render, this);
+
+        var self = this;
+    },
+
+    render: function() {
+        $(this.el).html(this.template({
+            groupsCollection: this.groupsCollection}));
+        return $(this.el);
+    }
+
+});
+
+
+app.Collection.GroupsCollection = Backbone.Collection.extend({
+    url : function(){
+        return '/tatami/rest/groupmemberships/lookup?screen_name=' + username;
+    }
+});
+
+app.Model.GroupModel = Backbone.Model.extend({
+    initialize: function(groupId) {
+        this.groupId = groupId;
+    },
+    url : function(){
+        return '/tatami/rest/groups/' + this.groupId;
+    }
+});
+
+app.View.GroupsView = Backbone.View.extend({
+    initialize:function () {
+        this.views = {};
+
+        this.groupId = this.options.group;
+        this.group = new app.Model.GroupModel(this.groupId);
+        this.group.fetch();
+
+        this.model = new app.Collection.StatusCollection();
+        this.model.url = '/tatami/rest/statuses/group_timeline?groupId=' + this.groupId;
+
+        this.views.list = new app.View.TimeLineView({
+            model: this.model
+        });
+
+        this.views.next = new app.View.TimeLineNextView({
+            model: this.model
+        });
+        this.views.next.nextStatus();
+    },
+
+    render:function () {
+        $(this.el).append(this.views.list.render());
+        $(this.el).append(this.views.next.render());
+        return $(this.el);
+    }
+
+});
+
+/*
 Tags
 */
 
@@ -608,15 +721,14 @@ app.View.TagsSearchView = Backbone.View.extend({
 
   initialize: function(){
 
-    $(this.el).addClass('alert alert-info');
+    $(this.el).addClass('alert alert-status');
 
-    this.nbStatus = 20;
     var self = this;
     this.model.url = function() {
       if(self.options.tag && self.options.tag !== '')
-        return '/tatami/rest/tags/' + self.options.tag + '/' + self.nbStatus;
+        return '/tatami/rest/statuses/tag_timeline?tag=' + self.options.tag;
       else
-        return '/tatami/rest/tags/' + self.nbStatus;
+        return '/tatami/rest/statuses/tag_timeline';
     };
   },
 
@@ -651,28 +763,33 @@ app.View.TagsSearchView = Backbone.View.extend({
 });
 
 app.View.TagsView = Backbone.View.extend({
-  initialize: function(){
-    this.views = {};
+    initialize:function () {
+        this.views = {};
 
-    this.model = new app.Collection.StatusCollection();
+        this.model = new app.Collection.StatusCollection();
 
-    this.views.search = new app.View.TagsSearchView({
-      tag: this.options.tag,
-      model: this.model
-    });
+        this.views.search = new app.View.TagsSearchView({
+            tag:this.options.tag,
+            model:this.model
+        });
 
-    this.views.list = new app.View.TimeLineView({
-      model : this.model
-    });
+        this.views.list = new app.View.TimeLineView({
+            model:this.model
+        });
 
-    this.views.search.fetch();
-  },
+        this.views.next = new app.View.TimeLineNextView({
+            model:this.model
+        });
 
-  render: function () {
-    $(this.el).append(this.views.search.render());
-    $(this.el).append(this.views.list.render());
-    return $(this.el);
-  }
+        this.views.next.nextStatus();
+    },
+
+    render:function () {
+        $(this.el).append(this.views.search.render());
+        $(this.el).append(this.views.list.render());
+        $(this.el).append(this.views.next.render());
+        return $(this.el);
+    }
 
 });
 
@@ -691,7 +808,7 @@ app.View.SearchSearchView = Backbone.View.extend({
 
   initialize: function(){
 
-    $(this.el).addClass('alert alert-info');
+    $(this.el).addClass('alert alert-status');
 
     this.nbStatus = 20;
   },
@@ -841,37 +958,6 @@ app.View.SearchView = Backbone.View.extend({
 });
 
 /*
-  Statistics
-*/
-
-app.Collection.DailyStatCollection = Backbone.Collection.extend({
-  url: '/tatami/rest/stats/day'
-});
-
-app.View.DailyStatsView = Backbone.View.extend({
-  initialize: function() {
-    this.model = new app.Collection.DailyStatCollection();
-    this.model.bind('reset', this.render, this);
-
-    this.model.fetch();
-  },
-
-  render: function() {
-    var values = [];
-    var labels = [];
-    this.model.each(function(model){
-      values.push(model.get('statusCount'));
-      labels.push(model.get('username'));
-    });
-    
-    $(this.el).pie(values, labels);
-
-    return $(this.el);
-  }
-});
-
-
-/*
 Initialization
 */
 
@@ -912,6 +998,9 @@ app.Router.HomeRouter = Backbone.Router.extend({
             placement:'right'
         });
 
+        var groupList = new app.View.GroupsListView();
+        $('#userGroups').html(groupList.render());
+
         var follow = app.views.follow = new app.View.FollowView();
         $('#profileFollow').html(follow.render());
 
@@ -926,12 +1015,14 @@ app.Router.HomeRouter = Backbone.Router.extend({
 
   routes: {
     "timeline": "timeline",
-    "favorite": "favorite",
+    "mention": "mention",
+    "groups": "groups",
+    "groups/*group": "groups",
     "tags": "tags",
     "tags/*tag": "tags",
+    "favorite": "favorite",
     "search": "search",
     "search/*search": "search",
-    "daily": "daily",
     "*action": "timeline"
   },
 
@@ -951,6 +1042,20 @@ app.Router.HomeRouter = Backbone.Router.extend({
     $('#tab-content').append(app.views.timeline.render());
   },
 
+    mention:function () {
+        this.selectMenu('mention');
+        if(!app.views.mention) {
+            var mentionCollection = new app.Collection.StatusCollection();
+            mentionCollection.url = '/tatami/rest/mentions';
+            app.views.mention = new app.View.MentionPanelView({
+                model: mentionCollection
+            });
+        }
+        app.views.mention.trigger('refresh');
+        $('#tab-content').empty();
+        $('#tab-content').append(app.views.mention.render());
+    },
+
   favorite: function() {
     this.selectMenu('favorite');
     if(!app.views.favorite) {
@@ -964,6 +1069,15 @@ app.Router.HomeRouter = Backbone.Router.extend({
     $('#tab-content').empty();
     $('#tab-content').append(app.views.favorite.render());
   },
+
+    groups: function(group) {
+        this.selectMenu('groups');
+        app.views.groups = new app.View.GroupsView({
+            group: group
+        });
+        $('#tab-content').empty();
+        $('#tab-content').append(app.views.groups.render());
+    },
 
   tags: function(tag) {
     this.selectMenu('tags');
@@ -988,13 +1102,6 @@ app.Router.HomeRouter = Backbone.Router.extend({
       $('#tab-content').append(app.views.search.render());
     }
   },
-
-  daily: function() {
-    this.selectMenu('daily');
-    app.views.daily = new app.View.DailyStatsView();
-    $('#tab-content').empty();
-    $('#tab-content').append(app.views.daily.render());
-  }
 });
 
 $(function() {

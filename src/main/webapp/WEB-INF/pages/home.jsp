@@ -16,15 +16,25 @@
             <div class="span4">
 
                 <!-- Infos -->
-                <div id="profileContent" class="alert alert-info">
+                <div id="profileContent" class="alert alert-status">
+                </div>
+
+                <!-- Groups -->
+                <div id="groupsList" class="alert alert-status">
+                    <div>
+                        <label><i class="icon-th"></i> <fmt:message key="tatami.menu.groups"/></label>
+                        <div class="row-fluid" id="userGroups">
+
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Follow -->
-                <div id="profileFollow" class="alert alert-info hidden-phone">
+                <div id="profileFollow" class="alert alert-status">
                 </div>
 
                 <!-- Trends -->
-                <div class="alert alert-info hidden-phone">
+                <div id="profileTrends" class="alert alert-status">
                     <div>
                         <label><i class="icon-fire"></i> <fmt:message key="tatami.trends.title"/></label>
                     </div>
@@ -36,6 +46,7 @@
                         </div>
                     </div>
                 </div>
+
             </div>
 
             <div class="span8">
@@ -43,7 +54,22 @@
                     <ul class="nav nav-tabs homeMenu">
                         <li class="active">
                             <a href="#/timeline">
-                                <i class="icon-th-list"></i> <fmt:message key="tatami.status"/>
+                                <i class="icon-th-list"></i> <fmt:message key="tatami.timeline"/>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#/mention">
+                                <i class="icon-user"></i> <fmt:message key="tatami.mentions"/>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#/groups">
+                                <i class="icon-th"></i> <fmt:message key="tatami.menu.groups"/>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#/tags">
+                                <i class="icon-tags"></i> <fmt:message key="tatami.tags"/>
                             </a>
                         </li>
                         <li>
@@ -52,18 +78,8 @@
                             </a>
                         </li>
                         <li>
-                            <a href="#/tags">
-                                <i class="icon-tag"></i> <fmt:message key="tatami.tags"/>
-                            </a>
-                        </li>
-                        <li>
                             <a href="#/search">
                                 <i class="icon-search"></i> <fmt:message key="tatami.search"/>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#/daily">
-                                <i class="icon-signal"></i> <fmt:message key="tatami.stats.status.piechart"/>
                             </a>
                         </li>
                     </ul>
@@ -98,8 +114,6 @@
 
     <script src="/js/tatami-commons.js"></script>
     <script src="/js/tatami-home.js"></script>
-    <script src="/js/raphael-min.js"></script>
-    <script src="/js/jquery-raphael-tatami-pie.js"></script>
 
 </body>
 </html>

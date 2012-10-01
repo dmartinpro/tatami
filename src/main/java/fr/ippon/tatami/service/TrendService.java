@@ -1,21 +1,14 @@
 package fr.ippon.tatami.service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
-import javax.inject.Inject;
-
+import fr.ippon.tatami.repository.TrendRepository;
+import fr.ippon.tatami.repository.UserTrendRepository;
+import fr.ippon.tatami.service.util.ValueComparator;
+import fr.ippon.tatami.web.rest.dto.Trend;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import fr.ippon.tatami.domain.Trend;
-import fr.ippon.tatami.repository.TrendRepository;
-import fr.ippon.tatami.service.util.ValueComparator;
 
 /**
  * Analyzes trends (tags going up or down depending on the current time).
@@ -30,18 +23,31 @@ public class TrendService {
     @Inject
     private TrendRepository trendRepository;
 
+    @Inject
+    private UserTrendRepository userTrendRepository;
+
     @Cacheable("trends-cache")
     public List<Trend> getCurrentTrends(String domain) {
         List<String> tags = trendRepository.getRecentTags(domain);
+        return calculateTrends(tags);
+    }
+
+    @Cacheable("user-trends-cache")
+    public List<Trend> getTrendsForUser(String login) {
+        List<String> tags = userTrendRepository.getRecentTags(login);
+        return calculateTrends(tags);
+    }
+
+    private List<Trend> calculateTrends(List<String> tags) {
         if (log.isDebugEnabled()) {
             log.debug("All tags: " + tags);
         }
-        HashMap<String, Integer> totalTagsCount  = new HashMap<String, Integer>();
-        HashMap<String, Integer> recentTagsCount  = new HashMap<String, Integer>();
-        HashMap<String, Integer> oldTagsCount  = new HashMap<String, Integer>();
+        HashMap<String, Integer> totalTagsCount = new HashMap<String, Integer>();
+        HashMap<String, Integer> recentTagsCount = new HashMap<String, Integer>();
+        HashMap<String, Integer> oldTagsCount = new HashMap<String, Integer>();
         int currentPosition = 0;
         int middlePosition = tags.size() / 2;
-        for(String tag : tags) {
+        for (String tag : tags) {
             addTagInMap(totalTagsCount, tag);
             if (currentPosition <= middlePosition) {
                 addTagInMap(recentTagsCount, tag);
@@ -85,7 +91,7 @@ public class TrendService {
         }
     }
 
-    private List<String> findMostUsedTags(HashMap<String,Integer> totalTagsCount) {
+    private List<String> findMostUsedTags(HashMap<String, Integer> totalTagsCount) {
         ValueComparator valueComparator = new ValueComparator(totalTagsCount);
         TreeMap<String, Integer> orderedTags =
                 new TreeMap<String, Integer>(valueComparator);

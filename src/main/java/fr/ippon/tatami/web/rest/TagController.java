@@ -1,14 +1,13 @@
 package fr.ippon.tatami.web.rest;
 
 import fr.ippon.tatami.domain.Status;
+import fr.ippon.tatami.service.TagMembershipService;
 import fr.ippon.tatami.service.TimelineService;
+import fr.ippon.tatami.web.rest.dto.Tag;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
 import java.util.Collection;
@@ -26,41 +25,60 @@ public class TagController {
     @Inject
     private TimelineService timelineService;
 
+    @Inject
+    private TagMembershipService tagMembershipService;
+
     /**
-     * GET  /tags -> get the latest status with no tags
+     * GET  /statuses/tag_timeline -> get the latest status for a given tag
      */
-    @RequestMapping(value = "/rest/tags/{nbStatus}",
+    @RequestMapping(value = "/rest/statuses/tag_timeline",
             method = RequestMethod.GET,
             produces = "application/json")
     @ResponseBody
-    public Collection<Status> listTagStatus(@PathVariable("nbStatus") String nbStatus) {
+    public Collection<Status> listStatusForTag(@RequestParam(required = false, value = "tag") String tag,
+                                               @RequestParam(required = false) Integer count,
+                                               @RequestParam(required = false) String since_id,
+                                               @RequestParam(required = false) String max_id) {
+
         if (log.isDebugEnabled()) {
-            log.debug("REST request to get a tag status list (" + nbStatus + " sized).");
+            log.debug("REST request to get statuses for tag : " + tag);
+        }
+        if (count == null) {
+            count = 20;
         }
         try {
-            return timelineService.getTagline(null, Integer.parseInt(nbStatus));
+            return timelineService.getTagline(tag, count, since_id, max_id);
         } catch (NumberFormatException e) {
             log.warn("Page size undefined ; sizing to default", e);
-            return timelineService.getTagline(null, 20);
+            return timelineService.getTagline(tag, 20, since_id, max_id);
         }
     }
 
     /**
-     * GET  /tags/ippon -> get the latest status tagged with "ippon"
+     * POST /tagmemberships/create -> follow tag
      */
-    @RequestMapping(value = "/rest/tags/{tag}/{nbStatus}",
-            method = RequestMethod.GET,
-            produces = "application/json")
+    @RequestMapping(value = "/rest/tagmemberships/create",
+            method = RequestMethod.POST,
+            consumes = "application/json")
     @ResponseBody
-    public Collection<Status> listTagStatus(@PathVariable("tag") String tag, @PathVariable("nbStatus") String nbStatus) {
+    public void followTag(@RequestBody Tag tag) {
         if (log.isDebugEnabled()) {
-            log.debug("REST request to get a tag status list (" + nbStatus + " sized).");
+            log.debug("REST request to follow tag : " + tag);
         }
-        try {
-            return timelineService.getTagline(tag, Integer.parseInt(nbStatus));
-        } catch (NumberFormatException e) {
-            log.warn("Page size undefined ; sizing to default", e);
-            return timelineService.getTagline(tag, 20);
+        tagMembershipService.followTag(tag);
+    }
+
+    /**
+     * POST /tagmemberships/destroy -> unfollow tag
+     */
+    @RequestMapping(value = "/rest/tagmemberships/destroy",
+            method = RequestMethod.POST,
+            consumes = "application/json")
+    @ResponseBody
+    public void unfollowTag(Tag tag) {
+        if (log.isDebugEnabled()) {
+            log.debug("REST request to unfollow tag  : " + tag);
         }
+        tagMembershipService.unfollowTag(tag);
     }
 }

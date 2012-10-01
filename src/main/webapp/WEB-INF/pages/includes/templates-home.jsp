@@ -5,7 +5,7 @@
 <script type="text/template" id="profile-infos">
   <div class="span12 text-center">
     <a href="/tatami/profile/<@= profile.username @>/" title="<fmt:message key="tatami.user.profile.show"/> @<@= profile.username @> <@= profile.firstName @> <@= profile.lastName @>">
-      <img class="pull-left avatar" src="https://www.gravatar.com/avatar/<@= profile.gravatar @>?s=64" alt="<@= profile.firstName @> <@= profile.lastName @>"/>
+      <img class="pull-left avatar" src="https://www.gravatar.com/avatar/<@= profile.gravatar @>?s=64&d=mm" alt="<@= profile.firstName @> <@= profile.lastName @>"/>
       <h4><@=profile.firstName@> <@=profile.lastName@></h4>
       @<@=profile.username@>
     </a>
@@ -80,10 +80,10 @@
       <label><i class="icon-zoom-in"></i> <fmt:message key="tatami.find.title"/></label>
     </div>
     <div class="control-group">
-      <input id="findUsername" class="span12 input-xlarge" type="text" required="required" placeholder="<fmt:message key="tatami.find.username"/>..." name="username" data-provide="typeahead"/>
+      <input id="findUsername" class="span12 input-xlarge" type="text" required="required" placeholder="<fmt:message key="tatami.find.username"/>..." name="username" data-provide="typeahead"  autocomplete="off"/>
     </div>
     <div>
-      <button type='submit' class="btn btn-primary btn-block"><fmt:message key="tatami.find.action"/></button>
+      <button type='submit' class="btn btn-block"><fmt:message key="tatami.find.action"/></button>
     </div>
   </fieldset>
 </script>
@@ -106,32 +106,24 @@
 
 <script type="text/template" id="profile-follow-suggest-empty">
   <tr>
-    <td class="pull-left"><fmt:message key="tatami.follow.nobody"/></td>
+    <td><span class="pull-left"><fmt:message key="tatami.follow.nobody"/></span></td>
   </tr>
 </script>
 
 <script type="text/template" id="profile-follow-suggest-item">
-  <td class="pull-left">
-    <a href="/tatami/profile/<@= follow.username @>/" class="userStatus"  title="<fmt:message key="tatami.user.profile.show"/> @<@= follow.username @> <@= follow.firstName @> <@= follow.lastName @>"><img class="avatar avatar-small" src="https://www.gravatar.com/avatar/<@= follow.gravatar @>?s=64" alt="<@= follow.firstName @> <@= follow.lastName @>"/>
+  <td>
+    <a href="/tatami/profile/<@= follow.username @>/" class="userStatus pull-left" title="<fmt:message key="tatami.user.profile.show"/> @<@= follow.username @> <@= follow.firstName @> <@= follow.lastName @>"><img class="avatar avatar-small" src="https://www.gravatar.com/avatar/<@= follow.gravatar @>?s=64&d=mm" alt="<@= follow.firstName @> <@= follow.lastName @>"/>
       <@= follow.firstName @> <@= follow.lastName @> <em>@<@= follow.username @></em>
     </a>
   </td>
 </script>
 
-<script type="text/template" id="trends-template">
-
-</script>
-
-<script type="text/template" id="trends-template-item">
-    <td class="pull-left">
-        <a href="/tatami/#/tags/<@= trend.tag @>" class="trends">
-            #<@= trend.tag @> <i class="<@ if (trend.trendingUp === true) { @>icon-arrow-up<@ } else { @>icon-arrow-down<@ } @>"/>
-        </a>
-    </td>
-</script>
-
 <script type="text/template" id="favorite-refresh">
-  <div class="status text-center alert alert-info"><fmt:message key="tatami.timeline.refresh"/></div>
+    <button type='submit' class="btn btn-block"><fmt:message key="tatami.timeline.refresh"/></button>
+</script>
+
+<script type="text/template" id="mention-refresh">
+    <button id="mentionRefresh" type='submit' class="btn btn-block"><fmt:message key="tatami.timeline.refresh"/></button>
 </script>
 
 <script type="text/template" id="timeline-progress">
@@ -142,9 +134,26 @@
   </div>
 </script>
 
+<script type="text/template" id="group-list">
+    <div class="row-fluid">
+        <ul class="nav nav-stacked nav-pills">
+            <li><a href="#/timeline"><i class="icon-chevron-right pull-right"/> Aucun groupe</a></li>
+            <@ groupsCollection.each(function(group) { @>
+            <li><a href="#/groups/<@= group.get('groupId') @>"><i class="icon-chevron-right pull-right"/> <@= group.get('name') @></a></li>
+            <@ }); @>
+        </ul>
+    </div>
+</script>
+
+<script type="text/template" id="group-display">
+    <div class="row-fluid">
+
+    </div>
+</script>
+
 <script type="text/template" id="tag-search-form">
   <div class="row-fluid">
-    <input class="span12" name="search" value="<@= tag @>" type="text" placeholder="tag">
+    <input class="span12" name="search" value="<@= tag @>" type="text" placeholder="<fmt:message key="tatami.tag"/>">
   </div>
 </script>
 

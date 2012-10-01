@@ -21,7 +21,7 @@
                     <div class="row-fluid">
                       <div class="span4 text-center">
                         <a href="/tatami/profile/${user.username}/" title="<fmt:message key="tatami.user.profile.show"/> ${user.firstName} ${user.lastName}">
-                          <img class="pull-left nomargin avatar" src="https://www.gravatar.com/avatar/${user.gravatar}?s=64" alt="${user.firstName} ${user.lastName}">
+                          <img class="pull-left nomargin avatar" src="https://www.gravatar.com/avatar/${user.gravatar}?s=64&d=mm" alt="${user.firstName} ${user.lastName}">
                           <h4>${user.firstName} ${user.lastName}</h4>
                           @${user.username}
                         </a>
@@ -76,25 +76,36 @@
                 <div class="span12">
                   <div class="row-fluid">
                     <div class="span4">
-                      <div class="alert alert-info">
+                      <div class="alert alert-status">
                         <div><b><fmt:message key="tatami.user.email"/> :</b> <a href="mailto:${user.login}">${user.login}</a></div>
                         <div><b><fmt:message key="tatami.user.jobTitle"/> :</b> ${user.jobTitle}</div>
                         <div><b><fmt:message key="tatami.user.phoneNumber"/> :</b> ${user.phoneNumber}</div>
                       </div>
-                      <div class="alert alert-info">
+                      <div class="alert alert-status">
                         <div class="row-fluid">
-                          <div class="span12">
                             <ul class="nav nav-pills nav-stacked profilMenu">
                               <li><a href="#/status"><fmt:message key="tatami.badge.status"/></a></li>
                               <li><a href="#/followed"><fmt:message key="tatami.badge.followed"/></a></li>
                               <li><a href="#/followers"><fmt:message key="tatami.badge.followers"/></a></li>
                             </ul>
-                          </div>
                         </div>
                       </div>
-                      <div class="alert alert-info">
+                      <div class="alert alert-status">
                         <div id="div-update"></div>
                       </div>
+                        <!-- Trends -->
+                        <div id="userTrends" class="alert alert-status hidden-phone">
+                            <div>
+                                <label><i class="icon-fire"></i> <fmt:message key="tatami.trends.user.title"/></label>
+                            </div>
+                            <div class="row-fluid">
+                                <div class="well">
+                                    <table class="table table-center" id="trends">
+
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="span8">
                       <div id="tab-content"></div>

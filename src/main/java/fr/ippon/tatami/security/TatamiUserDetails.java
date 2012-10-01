@@ -1,18 +1,12 @@
 package fr.ippon.tatami.security;
 
-import java.util.Collection;
-
+import fr.ippon.tatami.config.Constants;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
-public class TatamiUserDetails extends User {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = -5254098987887378014L;
 
-    private String theme;
+    private String theme = Constants.DEFAULT_THEME;
 
     public TatamiUserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities) {
         super(username, password, authorities);

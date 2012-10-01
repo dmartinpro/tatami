@@ -9,10 +9,9 @@
     <script src="/js/backbone-min.js"></script>
     <script src="/js/jquery-charcount.js"></script>
     <script src="/js/jquery-timeago.js"></script>
-    <script src="/js/jquery-tatami-tagLinker.js"></script>
-    <script src="/js/jquery-tatami-usernameLinker.js"></script>
     <script src="/js/jquery-tatami-infinitiScroll.js"></script>
     <script src="/js/marked.js"></script>
+    <script src="/js/tatami-search.js"></script>
 </c:if>
 <c:if test="${wro4jEnabled eq true}">
     <script src="/tatami/static/${version}/all.js"></script>

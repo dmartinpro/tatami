@@ -27,6 +27,8 @@ public class ColumnFamilyKeys {
 
     public final static String TIMELINE_SHARES_CF = "TimelineShares";
 
+    public final static String MENTIONLINE_CF = "Mentionline";
+
     public final static String USERLINE_CF = "Userline";
 
     public final static String USERLINE_SHARES_CF = "UserlineShares";
@@ -38,4 +40,25 @@ public class ColumnFamilyKeys {
     public final static String REGISTRATION_CF = "Registration";
 
     public final static String TRENDS_CF = "Trends";
+
+    public final static String TAG_FOLLOWERS_CF = "TagFollowers";
+
+    public final static String USER_TAGS_CF = "UserTags";
+
+    public final static String TAG_COUNTER_CF = "TagCounter";
+
+    public final static String USER_TRENDS_CF = "UserTrends";
+
+    public final static String GROUP_CF = "Group";
+
+    public final static String GROUP_DETAILS_CF = "GroupDetails";
+
+    public final static String GROUP_MEMBERS_CF = "GroupMembers";
+
+    public final static String USER_GROUPS_CF = "UserGroups";
+
+    public final static String GROUP_COUNTER_CF = "GroupCounter";
+
+    public final static String GROUPLINE_CF = "Groupline";
+
 }

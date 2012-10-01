@@ -4,10 +4,7 @@ _.templateSettings = {
     evaluate: /<\@(.+?)\@\>/gim
 };
 
-var app;
-
-if(!window.app){
-    app = window.app = _.extend({
+var app = window.app = _.extend({
         views:{},
         View:{},
         Collection:{},
@@ -41,10 +38,6 @@ if(!window.app){
     },
 
   }, Backbone.Events);
-}
-else {
-  app = window.app;
-}
 
 /*
   Timeline
@@ -127,7 +120,7 @@ app.Collection.SharesCollection = Backbone.Collection.extend({
 });
 
 app.View.SharesView = Backbone.View.extend({
-  tagName: 'table',
+  tagName: 'div',
   template: _.template($('#timeline-share').html()),
 
   render: function() {
@@ -174,12 +167,63 @@ app.View.ShareView = Backbone.View.extend({
 
 /* Views */
 
+app.View.TrendsView = Backbone.View.extend({
+    template: _.template($('#trends-template').html()),
+    tagName: 'tbody',
+
+    initialize: function() {
+        var self = this;
+
+        this.model = new app.Collection.TrendsCollection();
+
+        this.model.bind('reset', this.render, this);
+        this.model.bind('add', function(model, collection, options) {
+            self.addItem(model, options.index);
+        }, this);
+
+        this.model.fetch();
+    },
+
+    render: function() {
+        $(this.el).empty();
+        if(this.model.length > 0)
+            _.each(this.model.models, this.addItem, this);
+        else
+            $(this.el).html(this.template());
+        return $(this.el);
+    },
+
+    addItem: function(item, index) {
+        var el = new app.View.TrendsItemView({
+            model: item
+        }).render();
+        if(index === 0)
+            $(this.el).prepend(el);
+        else
+            $(this.el).append(el);
+    }
+});
+
+app.View.TrendsItemView = Backbone.View.extend({
+    tagName: 'tr',
+    template: _.template($('#trends-template-item').html()),
+
+
+    initialize: function() {
+    },
+
+    render: function() {
+        var $el = $(this.el);
+        $el.html(this.template({trend:this.model.toJSON()}));
+        return $(this.el);
+    }
+});
+
 app.View.TimeLineItemView = Backbone.View.extend({
   template: _.template($('#timeline-item').html()),
 
   initialize: function() {
     this.views = {};
-
     this.views.status = new app.View.TimeLineItemInnerView({
       model : this.model,
       discuss : this.options.discuss
@@ -225,6 +269,13 @@ app.View.TimeLineItemView = Backbone.View.extend({
     if (this.details != true) {
       var statusDetails = new app.Model.StatusDetails(this.model);
 
+
+      if(typeof this.views.discussCurrent === 'undefined'){
+        this.views.discussCurrent = new app.View.TimeLineView({
+          model: new app.Collection.StatusCollection(),
+          discuss: true
+        });
+      }
       if(typeof this.views.discussBefore === 'undefined'){
         this.views.discussBefore = new app.View.TimeLineView({
           model: new app.Collection.StatusCollection(),
@@ -244,8 +295,11 @@ app.View.TimeLineItemView = Backbone.View.extend({
       }
       statusDetails.fetch({
         success: function(model){
+          self.views.discussCurrent.model.reset();
           self.views.discussBefore.model.reset();
           self.views.discussAfter.model.reset();
+
+          var discussionIsPresent = false;
           _.forEach(model.get('discussionStatuses'),function(model, index, collection){
             var initDate = self.model.get('statusDate');
             if (model.statusDate < initDate){
@@ -254,7 +308,11 @@ app.View.TimeLineItemView = Backbone.View.extend({
             else {
               self.views.discussAfter.model.add(model);
             }
+            discussionIsPresent = true;
           });
+          if(discussionIsPresent) {
+        	self.views.discussCurrent.model.add(self.model);
+          }
           self.views.shares.model.reset();
           _.forEach(model.get('sharedByLogins'), function(value) {
             var username = value.split('@')[0];
@@ -272,17 +330,19 @@ app.View.TimeLineItemView = Backbone.View.extend({
     this.highlight();
   },
 
-  detailsRender: function() {
-    if(this.details){
-      this.$el.find('.discuss-before').append(this.views.discussBefore.render());
-      this.$el.find('.discuss-after').append(this.views.discussAfter.render());
-      this.$el.find('.shares').append(this.views.shares.render());
-    }else{
-      this.$el.find('.discuss-before').empty();
-      this.$el.find('.discuss-after').empty();
-      this.$el.find('.shares').empty();
-    }
-  },
+    detailsRender:function () {
+        if (this.details) {
+            this.$el.find('.discuss-current').append(this.views.discussCurrent.render());
+            this.$el.find('.discuss-before').append(this.views.discussBefore.render());
+            this.$el.find('.discuss-after').append(this.views.discussAfter.render());
+            this.$el.find('.shares').append(this.views.shares.render());
+        } else {
+            this.$el.find('.discuss-current').empty();
+            this.$el.find('.discuss-before').empty();
+            this.$el.find('.discuss-after').empty();
+            this.$el.find('.shares').empty();
+        }
+    },
 
   render: function() {
     $(this.el).html(this.template({
@@ -318,7 +378,6 @@ app.View.TimeLineItemInnerView = Backbone.View.extend({
 
   replyAction: function() {
     var statusId = this.model.get('statusId');
-    
     this.model.set('discuss', !this.model.get('discuss'));
     this.model.set('replyContent', '');
 
@@ -404,7 +463,6 @@ app.View.TimeLineItemInnerView = Backbone.View.extend({
           sanitize:true, });
       var markedContent = marked(contentNode.text());
       contentNode.html(markedContent);
-      $(this.el).tagLinker('.status-content').usernameLinker('.status-content');
       $(this.el).find("abbr.timeago").timeago();
       return $(this.el);
   }
@@ -442,13 +500,13 @@ app.View.TimeLineView = Backbone.View.extend({
 /*
 Friendship
 */
-app.Model.FollowModel = Backbone.Model.extend({
+app.Model.FollowUserModel = Backbone.Model.extend({
 url : function(){
   return '/tatami/rest/friendships/create';
 }
 });
 
-app.Model.UnFollowModel = Backbone.Model.extend({
+app.Model.UnFollowUserModel = Backbone.Model.extend({
 url : function(){
   return '/tatami/rest/friendships/destroy';
 }
@@ -484,7 +542,7 @@ follow: function() {
   this.undelegateEvents();
   $(this.el).empty();
 
-  var m = new app.Model.FollowModel();
+  var m = new app.Model.FollowUserModel();
   m.set('username', this.options.username);
 
   m.save(null, {
@@ -504,7 +562,7 @@ unfollow: function() {
   this.undelegateEvents();
   $(this.el).empty();
 
-  var m = new app.Model.UnFollowModel();
+  var m = new app.Model.UnFollowUserModel();
   m.set('username', this.options.username);
 
   m.save(null, {
@@ -536,10 +594,6 @@ render: function() {
 }
 
 });
-
-/*
-Initialization
-*/
 
   /*
     Search form in the top menu.

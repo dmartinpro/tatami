@@ -8,6 +8,8 @@ import fr.ippon.tatami.repository.*;
 import fr.ippon.tatami.security.AuthenticationService;
 import fr.ippon.tatami.security.DomainViolationException;
 import fr.ippon.tatami.service.util.DomainUtil;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Service;
@@ -46,6 +48,9 @@ public class TimelineService {
     private TimelineRepository timelineRepository;
 
     @Inject
+    private MentionlineRepository mentionlineRepository;
+
+    @Inject
     private UserlineRepository userlineRepository;
 
     @Inject
@@ -53,6 +58,9 @@ public class TimelineService {
 
     @Inject
     private TaglineRepository taglineRepository;
+
+    @Inject
+    private GrouplineRepository grouplineRepository;
 
     @Inject
     private FollowerRepository followerRepository;
@@ -142,6 +150,7 @@ public class TimelineService {
                     Status statusCopy = new Status();
                     statusCopy.setLogin(status.getLogin());
                     statusCopy.setStatusId(status.getStatusId());
+                    statusCopy.setGroupId(status.getGroupId());
                     if (sharedStatusInfo != null) { // Manage shared statuses
                         statusCopy.setTimelineId(sharedStatusInfo.getSharedStatusId());
                         String sharedByLogin = sharedStatusInfo.getSharedByLogin();
@@ -164,6 +173,7 @@ public class TimelineService {
                     statusCopy.setFirstName(statusUser.getFirstName());
                     statusCopy.setLastName(statusUser.getLastName());
                     statusCopy.setGravatar(statusUser.getGravatar());
+                    statusCopy.setDetailsAvailable(status.isDetailsAvailable());
                     statuses.add(statusCopy);
                 } else {
                     if (log.isDebugEnabled()) {
@@ -179,20 +189,46 @@ public class TimelineService {
         return statuses;
     }
 
+	/**
+     * The mentionline contains a statuses where the current user is mentioned.
+     *
+     * @return a status list
+     */
+    public Collection<Status> getMentionline(int nbStatus, String since_id, String max_id) {
+        User currentUser = authenticationService.getCurrentUser();
+        String domain = DomainUtil.getDomainFromLogin(currentUser.getLogin());
+        Map<String, SharedStatusInfo> line =
+                mentionlineRepository.getMentionline(currentUser.getLogin(), nbStatus, since_id, max_id);
+
+        return buildStatusList(line);
+    }
+
     /**
-     * The tagline contains a tag's status
+     * The tagline contains a tag's statuses
      *
      * @param tag      the tag to retrieve the timeline of
      * @param nbStatus the number of status to retrieve, starting from most recent ones
      * @return a status list
      */
-    public Collection<Status> getTagline(String tag, int nbStatus) {
+    public Collection<Status> getTagline(String tag, int nbStatus, String since_id, String max_id) {
         if (tag == null || tag.isEmpty()) {
             tag = hashtagDefault;
         }
         User currentUser = authenticationService.getCurrentUser();
         String domain = DomainUtil.getDomainFromLogin(currentUser.getLogin());
-        Map<String, SharedStatusInfo> line = taglineRepository.getTagline(domain, tag, nbStatus);
+        Map<String, SharedStatusInfo> line = taglineRepository.getTagline(domain, tag, nbStatus, since_id, max_id);
+        return buildStatusList(line);
+    }
+
+    /**
+     * The groupline contains a group's statuses
+     *
+     * @param group      the group to retrieve the timeline of
+     * @param nbStatus the number of status to retrieve, starting from most recent ones
+     * @return a status list
+     */
+    public Collection<Status> getGroupline(String groupId, Integer count, String since_id, String max_id) {
+        Map<String, SharedStatusInfo> line = grouplineRepository.getGroupline(groupId, count, since_id, max_id);
         return buildStatusList(line);
     }
 
@@ -200,8 +236,7 @@ public class TimelineService {
      * The timeline contains the user's status merged with his friends status
      *
      * @param nbStatus the number of status to retrieve, starting from most recent ones
-     * @param since_id
-     * @param max_id   @return a status list
+     * @return a status list
      */
     public Collection<Status> getTimeline(int nbStatus, String since_id, String max_id) {
         String login = authenticationService.getCurrentUser().getLogin();
@@ -239,7 +274,7 @@ public class TimelineService {
 
         final User currentUser = authenticationService.getCurrentUser();
         if (status.getLogin().equals(currentUser.getLogin())
-                && !Boolean.TRUE.equals(status.getRemoved())) {
+                && Boolean.FALSE.equals(status.getRemoved())) {
             statusRepository.removeStatus(status);
             counterRepository.decrementStatusCounter(currentUser.getLogin());
             searchService.removeStatus(status);

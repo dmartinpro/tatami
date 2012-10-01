@@ -1,29 +1,21 @@
 package fr.ippon.tatami.web.rest;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-
+import fr.ippon.tatami.domain.User;
+import fr.ippon.tatami.domain.UserStatusStat;
+import fr.ippon.tatami.security.AuthenticationService;
+import fr.ippon.tatami.service.FriendshipService;
+import fr.ippon.tatami.service.SearchService;
+import fr.ippon.tatami.service.StatsService;
+import fr.ippon.tatami.service.UserService;
+import fr.ippon.tatami.service.util.DomainUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Whitelist;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import fr.ippon.tatami.domain.User;
-import fr.ippon.tatami.domain.UserStatusStat;
-import fr.ippon.tatami.security.AuthenticationService;
-import fr.ippon.tatami.service.SearchService;
-import fr.ippon.tatami.service.StatsService;
-import fr.ippon.tatami.service.UserService;
-import fr.ippon.tatami.service.util.DomainUtil;
 
 /**
  * REST controller for managing users.
@@ -40,6 +32,9 @@ public class UserController {
 
     @Inject
     private UserService userService;
+
+    @Inject
+    private FriendshipService friendshipService;
 
     @Inject
     private AuthenticationService authenticationService;
@@ -62,7 +57,7 @@ public class UserController {
         if (this.log.isDebugEnabled()) {
             this.log.debug("REST request to get Profile : " + username);
         }
-        User user = this.userService.getUserProfileByUsername(username);
+        User user = userService.getUserByUsername(username);
         return user;
     }
 
@@ -74,20 +69,18 @@ public class UserController {
             produces = "application/json")
     @ResponseBody
     public Collection<User> suggestions() {
-        User currentUser = this.authenticationService.getCurrentUser();
         String currentLogin = currentUser.getLogin();
         String currentUsername = DomainUtil.getUsernameFromLogin(currentLogin);
         if (this.log.isDebugEnabled()) {
             this.log.debug("REST request to get the last active users list (except " + currentUsername + ").");
         }
 
-        Collection<String> exceptions = this.userService.getFriendIdsForUser(currentLogin);
+        Collection<String> exceptions = friendshipService.getFriendIdsForUser(currentLogin);
         exceptions.add(currentLogin);
 
-        Collection<UserStatusStat> stats = this.statsService.getDayline();
         Map<String, User> users = new HashMap<String, User>();
         for (UserStatusStat stat : stats) {
-            User potentialFriend = this.userService.getUserProfileByUsername(stat.getUsername());
+            User potentialFriend = userService.getUserByUsername(stat.getUsername());
             if (exceptions.contains(potentialFriend.getLogin())) {
                 continue;
             }
@@ -113,13 +106,9 @@ public class UserController {
             produces = "application/json")
     @ResponseBody
     public Collection<User> searchUsers(@RequestParam("q") String query) {
-        String prefix = Jsoup.clean(query.toLowerCase(), Whitelist.none());
         if (this.log.isDebugEnabled()) {
             this.log.debug("REST request to find users starting with : " + prefix);
         }
-        User currentUser = this.authenticationService.getCurrentUser();
         String domain = DomainUtil.getDomainFromLogin(currentUser.getLogin());
-        Collection<String> logins = this.searchService.searchUserByPrefix(domain, prefix);
-        return this.userService.getUsersByLogin(logins);
     }
 }

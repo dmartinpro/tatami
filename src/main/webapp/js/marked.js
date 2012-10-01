@@ -1,5 +1,5 @@
 /**
- * marked - A markdown parser (https://github.com/dmartinpro/marked clone of https://github.com/chjj/marked)
+ * marked - A markdown parser (https://github.com/godu/marked clone of https://github.com/chjj/marked)
  * Copyright (c) 2011-2012, Christopher Jeffrey. (MIT Licensed)
  */
 
@@ -14,7 +14,7 @@ var block = {
   code: /^( {4}[^\n]+\n*)+/,
   fences: noop,
   hr: /^( *[-*_]){3,} *(?:\n+|$)/,
-  heading: /^ *(#{1,6}) *([^\n]+?) *#* *(?:\n+|$)/,
+  heading: /^ *(#{1,6} ) *([^\n]+?) *#* *(?:\n+|$)/,
   lheading: /^([^\n]+)\n *(=|-){3,} *\n*/,
   blockquote: /^( *>[^\n]+(\n[^\n]+)*\n*)+/,
   list: /^( *)(bull) [^\0]+?(?:hr|\n{2,}(?! )(?!\1bull )\n*|\s*$)/,
@@ -306,6 +306,8 @@ var inline = {
   em: /^\b_((?:__|[^\0])+?)_\b|^\*((?:\*\*|[^\0])+?)\*(?!\*)/,
   code: /^(`+)([^\0]*?[^`])\1(?!`)/,
   br: /^ {2,}\n(?!\s*$)/,
+  mention: /@([a-z0-9!#$%&'*+\/=?\^_`{|}~\-]+(?:\.[a-z0-9!#$%&'*+\/=?\^_`{|}~\-]+)*)/,
+  tags: /#([a-zA-Z0-9]+(?:\.[a-zA-Z0-9]+)*)/,
   text: /^[^\0]+?(?=[\\<!\[_*`]| {2,}\n|$)/
 };
 
@@ -325,6 +327,8 @@ inline.normal = {
   url: inline.url,
   strong: inline.strong,
   em: inline.em,
+  mention: inline.mention,
+  //tags: inline.tags,
   text: inline.text
 };
 
@@ -456,6 +460,28 @@ inline.lexer = function(src) {
     if (cap = inline.br.exec(src)) {
       src = src.substring(cap[0].length);
       out += '<br>';
+      continue;
+    }
+
+    // mention
+    if (cap = inline.mention.exec(src)) {
+      tab = src.split(cap[0]);
+      src = src.substring(tab[0].length + cap[0].length);
+      out += inline.lexer(tab[0]);
+      out += '<a href="/tatami/profile/' + cap[1] + '/">'
+        + cap[0]
+        + '</a>';
+      continue;
+    }
+
+    // tags
+    if (cap = inline.tags.exec(src)) {
+      tab = src.split(cap[0]);
+      src = src.substring(tab[0].length + cap[0].length);
+      out += inline.lexer(tab[0]);
+      out += '<a href="/tatami/#/tags/' + cap[1] + '">'
+        + cap[0]
+        + '</a>';
       continue;
     }
 
@@ -785,6 +811,7 @@ if (typeof module !== 'undefined') {
 }).call(function() {
   return this || (typeof window !== 'undefined' ? window : global);
 }());
+}());
 
 function isImgSrcValid(link) {
   if (link == null) {
@@ -800,3 +827,4 @@ function isImgSrcValid(link) {
   return extension_found;
 
 }
+}());
